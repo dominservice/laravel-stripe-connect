@@ -36,7 +36,7 @@ class Transaction
      * @param array $params
      * @return $this
      */
-    public function from($user, $params = [])
+    public function from($user, $params = []): Transaction
     {
         $this->from = $user;
         $this->from_params = $params;
@@ -46,7 +46,7 @@ class Transaction
     /**
      * @return $this
      */
-    public function useSavedCustomer()
+    public function useSavedCustomer(): Transaction
     {
         $this->saved_customer = true;
         return $this;
@@ -59,7 +59,7 @@ class Transaction
      * @param array $params
      * @return $this
      */
-    public function to($user, $params = [])
+    public function to($user, $params = []): Transaction
     {
         $this->to = $user;
         $this->to_params = $params;
@@ -73,7 +73,7 @@ class Transaction
      * @param $currency
      * @return $this
      */
-    public function amount($value, $currency)
+    public function amount($value, $currency): Transaction
     {
         $this->value = $value;
         $this->currency = $currency;
@@ -86,7 +86,7 @@ class Transaction
      * @param $amount
      * @return $this
      */
-    public function fee($amount)
+    public function fee($amount): Transaction
     {
         $this->fee = $amount;
         return $this;
@@ -99,7 +99,7 @@ class Transaction
      * @param array $params
      * @return Charge
      */
-    public function create($params = [])
+    public function create($params = []): Charge
     {
         // Prepare vendor
         $vendor = StripeConnect::createAccount($this->to, $this->to_params);

@@ -44,7 +44,7 @@ class StripeConnect
      * @param array $params
      * @return Stripe
      */
-    public static function createAccount($to, $params = [])
+    public static function createAccount($to, $params = []): Stripe
     {
         $params = array_merge([
             "type" => "custom",
@@ -112,7 +112,7 @@ class StripeConnect
      * @param null $token
      * @return Transaction
      */
-    public static function transaction($token = null)
+    public static function transaction($token = null): Transaction
     {
         return new Transaction($token);
     }

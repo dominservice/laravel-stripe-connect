@@ -36,7 +36,7 @@ Add the service provider to `config/app.php`
 (...)
 
 'aliases' => [
-    'LaravelStripeConnect' => Dominservice\LaravelStripeConnect\Facade\LaravelStripeConnectFacade::class,
+    'StripeConnect' => Dominservice\LaravelStripeConnect\Facade\LaravelStripeConnectFacade::class,
 ]
 ```
 
@@ -69,9 +69,9 @@ developed against as guide. You may find the package works with older versions o
 
 | Laravel | Stripe PHP | Stripe API | Laravel Stripe Connect |
 | :-- | :-- | :-- | :-- |
-| `^8.0` | `^7.52` | `>=2020-03-02` | `^1` |
-| `^7.0` | `^7.0` | `>=2020-03-02` | `^1` |
-| `^6.0` | `^6.40` | `>=2019-05-16` | `^1` |
+| `^8.0` | `^7.7` | `>=2020-03-02` | `^1` |
+| `^7.0` | `7.7` | `>=2020-03-02` | `^1` |
+| `^6.0` | `7.7` | `>=2020-03-02` | `^1` |
 
 ## Usage
 

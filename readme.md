@@ -1,9 +1,9 @@
 # Laravel Stripe Connect
 
-[![Packagist](https://img.shields.io/packagist/v/Dominservice/laravel-stripe-connect.svg)]()
-[![Packagist](https://img.shields.io/packagist/l/Dominservice/laravel-stripe-connect.svg)](https://packagist.org/packages/Dominservice/laravel-stripe-connect)
-[![Build Status](https://travis-ci.org/Dominservice/laravel-stripe-connect.svg?branch=master)](https://travis-ci.org/Dominservice/laravel-stripe-connect)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Dominservice/laravel-stripe-connect/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Dominservice/laravel-stripe-connect/?branch=master)
+[![Packagist](https://img.shields.io/packagist/v/dominservice/laravel-stripe-connect.svg)]()
+[![Latest Version](https://img.shields.io/github/release/dominservice/laravel-stripe-connect.svg?style=flat-square)](https://github.com/dominservice/laravel-stripe-connect/releases)
+[![Total Downloads](https://img.shields.io/packagist/dt/dominservice/laravel-stripe-connect.svg?style=flat-square)](https://packagist.org/packages/dominservice/laravel-stripe-connect)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
 
 > Marketplaces and platforms use Stripe Connect to accept money and pay out to third parties. Connect provides a complete set of building blocks to support virtually any business model, including on-demand businesses, e‑commerce, crowdfunding, fintech, and travel and events. 
 

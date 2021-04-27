@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Rap2hpoutre\LaravelStripeConnect;
+namespace Dominservice\LaravelStripeConnect;
 
 use Stripe\Account as StripeAccount;
 use Stripe\Charge;
@@ -11,7 +11,7 @@ use Stripe\Stripe as StripeBase;
 
 /**
  * Class Transaction
- * @package Rap2hpoutre\LaravelStripeConnect
+ * @package Dominservice\LaravelStripeConnect
  */
 class Transaction
 {

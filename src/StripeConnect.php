@@ -1,8 +1,9 @@
 <?php
 
 
-namespace Rap2hpoutre\LaravelStripeConnect;
+namespace Dominservice\LaravelStripeConnect;
 
+use Dominservice\LaravelStripeConnect\Models\Eloquent\Stripe;
 use Stripe\Account as StripeAccount;
 use Stripe\Customer;
 use Stripe\Stripe as StripeBase;
@@ -10,7 +11,7 @@ use Stripe\Stripe as StripeBase;
 
 /**
  * Class StripeConnect
- * @package Rap2hpoutre\LaravelStripeConnect
+ * @package Dominservice\LaravelStripeConnect
  */
 class StripeConnect
 {
@@ -27,7 +28,7 @@ class StripeConnect
      * @param $user
      * @return Stripe
      */
-    private static function getStripeModel($user)
+    private static function getStripeModel($user): Stripe
     {
         $stripe = Stripe::where('user_id', $user->id)->first();
         if (!$stripe) {
@@ -60,7 +61,7 @@ class StripeConnect
      * @param array $params
      * @return Stripe
      */
-    public static function createCustomer($token, $from, $params = [])
+    public static function createCustomer($token, $from, $params = []): Stripe
     {
         $params = array_merge([
             "email" => $from->email,
@@ -77,14 +78,14 @@ class StripeConnect
      * @param array $params
      * @return Stripe
      */
-    public function createOrUpdateCustomer($token, $from, $params = [])
+    public function createOrUpdateCustomer($token, $from, $params = []): Stripe
     {
         self::prepare();
         $user = self::getStripeModel($from);
         if (!$user) {
             return self::createCustomer($token, $from, $params);
         }
-        $customer = \Stripe\Customer::retrieve($token->customer_id);
+        $customer = Customer::retrieve($token->customer_id);
         $customer->source = $token;
         $customer->save();
         return $user;
@@ -96,7 +97,8 @@ class StripeConnect
      * @param $callback
      * @return Stripe
      */
-    private static function create($user, $id_key, $callback) {
+    private static function create($user, $id_key, $callback): Stripe
+    {
         self::prepare();
         $user = self::getStripeModel($user);
         if (!$user->$id_key) {

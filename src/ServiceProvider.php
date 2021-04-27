@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Rap2hpoutre\LaravelStripeConnect;
+namespace Dominservice\LaravelStripeConnect;
 
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 

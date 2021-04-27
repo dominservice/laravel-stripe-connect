@@ -1,13 +1,13 @@
 <?php
-namespace Rap2hpoutre\LaravelStripeConnect\Tests;
+namespace Dominservice\LaravelStripeConnect\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Rap2hpoutre\LaravelStripeConnect\StripeConnect;
-use Rap2hpoutre\LaravelStripeConnect\Transaction;
+use Dominservice\LaravelStripeConnect\StripeConnect;
+use Dominservice\LaravelStripeConnect\Transaction;
 
 /**
  * Class TransactionTest
- * @package Rap2hpoutre\LaravelStripeConnect\Tests
+ * @package Dominservice\LaravelStripeConnect\Tests
  */
 class TransactionTest extends TestCase
 {

@@ -3,10 +3,10 @@
 
 namespace Dominservice\LaravelStripeConnect;
 
+use Dominservice\LaravelStripeConnect\Repositories\Account;
+use Dominservice\LaravelStripeConnect\Repositories\Customer;
 use Stripe\Account as StripeAccount;
 use Stripe\Charge;
-use Stripe\Customer;
-use Stripe\Stripe as StripeBase;
 
 
 /**
@@ -36,7 +36,7 @@ class Transaction
      * @param array $params
      * @return $this
      */
-    public function from($user, $params = []): Transaction
+    public function from($user, $params = [])
     {
         $this->from = $user;
         $this->from_params = $params;
@@ -46,7 +46,7 @@ class Transaction
     /**
      * @return $this
      */
-    public function useSavedCustomer(): Transaction
+    public function useSavedCustomer()
     {
         $this->saved_customer = true;
         return $this;
@@ -59,10 +59,11 @@ class Transaction
      * @param array $params
      * @return $this
      */
-    public function to($user, $params = []): Transaction
+    public function to($user, $params = [], $company = false)
     {
         $this->to = $user;
         $this->to_params = $params;
+        $this->to_company = $company;
         return $this;
     }
 
@@ -73,9 +74,9 @@ class Transaction
      * @param $currency
      * @return $this
      */
-    public function amount($value, $currency): Transaction
+    public function amount($value, $currency)
     {
-        $this->value = $value;
+        $this->value = $value * 100;
         $this->currency = $currency;
         return $this;
     }
@@ -86,9 +87,9 @@ class Transaction
      * @param $amount
      * @return $this
      */
-    public function fee($amount): Transaction
+    public function fee($amount)
     {
-        $this->fee = $amount;
+        $this->fee = $amount * 100;
         return $this;
     }
 
@@ -99,25 +100,69 @@ class Transaction
      * @param array $params
      * @return Charge
      */
-    public function create($params = []): Charge
+    public function create($params = [])
     {
         // Prepare vendor
-        $vendor = StripeConnect::createAccount($this->to, $this->to_params);
+        $vendor = Account::create($this->to, $this->to_params, $this->to_company);
         // Prepare customer
         if ($this->saved_customer) {
-            $customer = StripeConnect::createCustomer($this->token, $this->from, $this->from_params);
+            $customer = Customer::createOrUpdate($this->token, $this->from, $this->from_params);
             $params["customer"] = $customer->customer_id;
         } else {
             $params["source"] = $this->token;
         }
 
+
+//        $paymentIntent = \Stripe\PaymentIntent::create([
+//            'amount' => $this->value,
+//            'currency' => $this->currency,
+//            'payment_method_types' => ['p24'],
+//            'transfer_group' => 'ORDER10',
+//        ]);
+//
+//// Create a Transfer to a connected account (later):
+//        $transfer = \Stripe\Transfer::create([
+//            'amount' => $this->value,
+//            'currency' => $this->currency,
+//            'destination' => $vendor->account_id,
+//            'transfer_group' => 'ORDER10',
+//        ]);
+//
+//// Create a second Transfer to another connected account (later):
+////        $transfer2 = \Stripe\Transfer::create([
+////            'amount' => 2000,
+////            'currency' => 'pln',
+////            'destination' => '{{OTHER_CONNECTED_STRIPE_ACCOUNT_ID}}',
+////            'transfer_group' => '{ORDER10}',
+////        ]);
+//
+//        dd($paymentIntent
+//        , $vendor
+//        , $customer
+//            , $transfer
+//        );
+
+        $charge = Charge::create(array_merge([
+            'description' =>  'level.name',
+            'amount' => $this->value,
+            'currency' => $this->currency,
+            'transfer_data' => ['destination' => $vendor->account_id,],
+            "application_fee_amount" => $this->fee ?? null,
+
+        ], $params));
+
+        dd($charge);
+
+
         return Charge::create(array_merge([
-            "amount" => $this->value,
-            "currency" => $this->currency,
-            "destination" => [
-                "account" => $vendor->account_id,
+            'payment_method_types' => ['p24'],
+            'amount' => $this->value,
+            'currency' => $this->currency,
+            'transfer_data' => [
+                'destination' => $vendor->account_id,
             ],
-            "application_fee" => $this->fee ?? null,
+
+            "application_fee_amount" => $this->fee ?? null,
         ], $params));
     }
 }

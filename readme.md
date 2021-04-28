@@ -86,16 +86,16 @@ use Dominservice\LaravelStripeConnect\StripeConnect;
 ### Example #1: direct charge
 
 The customer gives his credentials via Stripe Checkout and is charged.
-It's a one shot process. `$customer` and `$vendor` must be `User` instances. The `$token` must have been created using [Checkout](https://stripe.com/docs/checkout/tutorial) or [Elements](https://stripe.com/docs/stripe-js).
+It's a one shot process. `$customer` and `$vendor` must be `User` instances.
+The `$token` must have been created using [Checkout](https://stripe.com/docs/checkout/tutorial) or [Elements](https://stripe.com/docs/stripe-js).
 
 ```php
 StripeConnect::transaction($token)
     ->amount(1000, 'usd')
     ->from($customer)
-    ->to($vendor)
-    ->create(); 
+    ->to($vendor, [], $company ?? false)
+    ->create();
 ```
-
 ### Example #2: save a customer then charge later
 
 Sometimes, you may want to register a card then charge later.
@@ -136,7 +136,31 @@ StripeConnect::transaction($token)
     ->create(); 
 ```
 
-
+#### User object must have:
+```php
+$vendor = User:: (object) [
+    'first_name' => 'Zenon',
+    'last_name' => 'Burczymucha',
+    'phone' => '+48555555555',
+    'email' => 'email@test.com',
+    'country' => 'PL',
+]
+```
+#### Company object must have:
+```php
+$vendor = Company:: (object) [
+    'city' => 'Warszawa',
+    'address' => 'Zatyna 12',
+    'address_2' => '',
+    'postcode' => '01-000',
+    'state' => 'Mazowieckie',
+    'name' => 'Firma Testowa',
+    'phone' => '+48555555555',
+    'tax_no_prefix' => 'PL',
+    'tax_no' => '0123456789',
+    'country' => 'PL',
+]
+```
 
 ## Contributing
 

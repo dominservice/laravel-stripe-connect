@@ -83,6 +83,21 @@ You can make a single payment from a user to another user
 use Dominservice\LaravelStripeConnect\StripeConnect;
 ```
 
+### Exemple #3: create a vendor account
+
+You may want to create the vendor account before charging anybody.
+Just call `Account::create` with a `User` instance.
+You make set `params` like stripe account object.
+If account nust be for company you make set `company` object
+
+```php
+use Dominservice\LaravelStripeConnect\Repositories\Account;
+
+(...)
+
+$account = Account::create($vendor, $params = [], $company = false);
+```
+
 ### Example #1: direct charge
 
 The customer gives his credentials via Stripe Checkout and is charged.
@@ -112,27 +127,17 @@ StripeConnect::transaction()
     ->amount(1000, 'usd')
     ->useSavedCustomer()
     ->from($customer)
-    ->to($vendor)
+    ->to($vendor, $params = [], $company = false)
     ->create(); 
-```
-
-### Exemple #3: create a vendor account
-
-You may want to create the vendor account before charging anybody.
-Just call `createAccount` with a `User` instance.
-
-```php
-StripeConnect::createAccount($vendor);
 ```
 
 ### Exemple #4: Charge with application fee
 
 ```php
 StripeConnect::transaction($token)
-    ->amount(1000, 'usd')
-    ->fee(50)
+    ->amount(1000, 'usd', 50)
     ->from($customer)
-    ->to($vendor)
+    ->to($vendor, $params = [], $company = false)
     ->create(); 
 ```
 
@@ -148,7 +153,7 @@ $vendor = User:: (object) [
 ```
 #### Company object must have:
 ```php
-$vendor = Company:: (object) [
+$vendorCompany = Company:: (object) [
     'city' => 'Warszawa',
     'address' => 'Zatyna 12',
     'address_2' => '',

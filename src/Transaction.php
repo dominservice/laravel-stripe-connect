@@ -20,6 +20,25 @@ class Transaction
      */
     private $from, $to, $value, $currency, $to_params, $token, $fee, $from_params, $saved_customer;
 
+    private $zeroDecimalCurrencies = [
+        'BIF',
+        'CLP',
+        'DJF',
+        'GNF',
+        'JPY',
+        'KMF',
+        'KRW',
+        'MGA',
+        'PYG',
+        'RWF',
+        'UGX',
+        'VND',
+        'VUV',
+        'XAF',
+        'XOF',
+        'XPF',
+    ];
+
     /**
      * Transaction constructor.
      * @param null $token
@@ -57,6 +76,7 @@ class Transaction
      *
      * @param $user
      * @param array $params
+     * @param false|object $company
      * @return $this
      */
     public function to($user, $params = [], $company = false)
@@ -74,22 +94,11 @@ class Transaction
      * @param $currency
      * @return $this
      */
-    public function amount($value, $currency)
+    public function amount($value, $currency, $fee = null)
     {
-        $this->value = $value * 100;
+        $this->value = $this->validAmount($amount);
         $this->currency = $currency;
-        return $this;
-    }
-
-    /**
-     * Take your fees here.
-     *
-     * @param $amount
-     * @return $this
-     */
-    public function fee($amount)
-    {
-        $this->fee = $amount * 100;
+        $this->fee = $this->validAmount($fee, $currency);
         return $this;
     }
 
@@ -164,5 +173,11 @@ class Transaction
 
             "application_fee_amount" => $this->fee ?? null,
         ], $params));
+    }
+    
+    private function validAmount($amount = null, $currency = null)
+    {
+        $amount ?? 0;
+        return in_array(($currency ?? $this->currency), $this->zeroDecimalCurrencies) ? $amount : $amount*100;
     }
 }

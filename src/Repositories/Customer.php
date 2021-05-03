@@ -34,7 +34,6 @@ class Customer extends \Dominservice\LaravelStripeConnect\StripeConnect
         });
     }
 
-
     /**
      * @param $token
      * @param $from
@@ -53,7 +52,6 @@ class Customer extends \Dominservice\LaravelStripeConnect\StripeConnect
         $customer->save();
         return $user;
     }
-
 
     public static function update($to, $params = [])
     {

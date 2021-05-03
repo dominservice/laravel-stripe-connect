@@ -13,6 +13,7 @@ use Stripe\Stripe as StripeBase;
  */
 class StripeConnect
 {
+
     /**
      *
      */

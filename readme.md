@@ -69,9 +69,9 @@ developed against as guide. You may find the package works with older versions o
 
 | Laravel | Stripe PHP | Stripe API | Laravel Stripe Connect |
 | :-- | :-- | :-- | :-- |
-| `^8.0` | `^7.7` | `>=2020-03-02` | `^1` |
-| `^7.0` | `7.7` | `>=2020-03-02` | `^1` |
-| `^6.0` | `7.7` | `>=2020-03-02` | `^1` |
+| `^8` | `^7.7` | `>=2020-03-02` | `^2` |
+| `^7` | `7.7` | `>=2020-03-02` | `^2` |
+| `^6` | `7.7` | `>=2020-03-02` | `^2` |
 
 ## Usage
 
@@ -129,6 +129,15 @@ StripeConnect::transaction()
     ->from($customer)
     ->to($vendor, $params = [], $company = false)
     ->create(); 
+```
+
+### Exemple #3: create a vendor account
+
+You may want to create the vendor account before charging anybody.
+Just call `createAccount` with a `User` instance.
+
+```php
+StripeConnect::createAccount($vendor);
 ```
 
 ### Exemple #4: Charge with application fee

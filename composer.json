@@ -17,8 +17,8 @@
   "require": {
     "php": ">=7.1.3",
     "dominservice/data_locale_parser": "^1.0",
-    "illuminate/database": "^6.0|^7.0|^8.0",
-    "illuminate/support": "^6.0|^7.0|^8.0",
+    "illuminate/database": "^6|^7|^8",
+    "illuminate/support": "^6|^7|^8",
     "stripe/stripe-php": "^7.39"
   },
   "require-dev": {

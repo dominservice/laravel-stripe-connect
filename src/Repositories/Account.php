@@ -29,7 +29,7 @@ class Account extends StripeConnect
         self::prepare();
         $account = self::getStripeModel($to);
 
-        return $account->account_id !== null ? $account : null;
+        return $account->vendor_id !== null ? $account : null;
     }
 
     /**
@@ -41,79 +41,26 @@ class Account extends StripeConnect
     public static function create($to, $params = [], $company = false)
     {
         if (!$account = self::get($to)) {
-            return self::createUser($to, 'account_id', function () use ($to, $params, $company) {
+            $typeAccount = !empty($params['type']) && in_array($params['type'], [StripeAccount::TYPE_CUSTOM, StripeAccount::TYPE_EXPRESS, StripeAccount::TYPE_STANDARD])
+                ? $params['type'] : StripeAccount::TYPE_CUSTOM;
+            return self::createUser($to, 'vendor_id', $typeAccount, function () use ($to, $params, $company, $typeAccount) {
                 $country = !empty($company->country) ? $company->country : ($to->country ?? null);
-                $countryData = (new \Dominservice\DataLocaleParser\DataParser)->parseAllDataPerCountry('en', $country);
-                $capabilities = [
-                    'card_payments' => ['requested' => true],
-//            'card_issuing' => ['requested' => true],
-                ];
                 $xtendParams = [
                     'country' => $country,
                     'business_type' => $company ? StripeAccount::BUSINESS_TYPE_COMPANY : StripeAccount::BUSINESS_TYPE_INDIVIDUAL,
-                    "type" => StripeAccount::TYPE_EXPRESS, // custom | express | standard
+                    "type" => $typeAccount, // custom - TYPE_CUSTOM | express - TYPE_EXPRESS | standard - TYPE_STANDARD
                     "email" => $to->email,
                 ];
 
-                if (in_array($countryData->so, ['AU', 'CA', 'NZ', 'UK', 'US'])) {
-                    $capabilities['afterpay_clearpay_payments'] = ['requested' => true];
+                if (in_array($typeAccount, [StripeAccount::TYPE_CUSTOM, StripeAccount::TYPE_EXPRESS]) && empty($params['capabilities'])) {
+                    $xtendParams['capabilities'] = self::setCapabilities($country);
                 }
-                if (in_array($countryData->so, ['MY', 'SG'])) {
-                    $capabilities['grabpay_payments'] = ['requested' => true];
-                }
-                if ($countryData->so === 'MX') {
-                    $capabilities['oxxo_payments'] = ['requested' => true];
-                }
-                if ($countryData->so === 'CA') {
-                    $capabilities['acss_debit_payments'] = ['requested' => true];
-                }
-                if ($countryData->so === 'AU') {
-                    $capabilities['au_becs_debit_payments'] = ['requested' => true];
-                }
-                if ($countryData->so === 'MY') {
-                    $capabilities['fpx_payments'] = ['requested' => true];
-                }
-                if ($countryData->so === 'JP') {
-                    $capabilities['jcb_payments'] = ['requested' => true];
-                }
-
-                if ($countryData->continent === 'EU') {
-                    $capabilities = array_merge($capabilities, [
-                        'sepa_debit_payments' => ['requested' => true],
-                        'transfers' => ['requested' => true],
-                    ]);
-                    if ($countryData->so === 'FR') {
-                        $capabilities['cartes_bancaires_payments'] = ['requested' => true];
-                    }
-                    if ($countryData->so === 'UK') {
-                        $capabilities['bacs_debit_payments'] = ['requested' => true];
-                    }
-                    if ($countryData->so === 'BE') {
-                        $capabilities['bancontact_payments'] = ['requested' => true];
-                    }
-                    if ($countryData->so === 'AT') {
-                        $capabilities['eps_payments'] = ['requested' => true];
-                    }
-                    if ($countryData->so === 'DE') {
-                        $capabilities['giropay_payments'] = ['requested' => true];
-                    }
-                    if ($countryData->so === 'NL') {
-                        $capabilities['ideal_payments'] = ['requested' => true];
-                    }
-                    if ($countryData->so === 'PL') {
-                        $capabilities['p24_payments'] = ['requested' => true];
-                    }
-                    if (in_array($countryData->so, ['AT', 'BE', 'DE', 'IT', 'NL', 'ES'])) {
-                        $capabilities['sofort_payments'] = ['requested' => true];
-                    }
-                }
-                if (in_array($countryData->so, ['US', 'CA', 'JP'])) {
-                    $capabilities['transfers'] = ['requested' => true];
-                }
-
-                $xtendParams['capabilities'] = $capabilities;
 
                 if ($xtendParams['business_type'] === StripeAccount::BUSINESS_TYPE_COMPANY) {
+                    $xtendParams['business_profile'] = [
+                        'url' => $company->url,
+                        'mcc' => '5969',
+                    ];
                     $xtendParams['company'] = [
                         'address' => [
                             'city' => $company->city ?? null,
@@ -162,9 +109,10 @@ class Account extends StripeConnect
 
     public static function update($to, $params = [])
     {
-        return self::createUser($to, 'account_id', function () use ($params) {
-            return StripeAccount::update($params);
-        });
+        if ($account = self::getStripeModel($to)) {
+            return StripeAccount::update($account->vendor_id, $params);
+        }
+        return false;
     }
 
     /**
@@ -175,7 +123,7 @@ class Account extends StripeConnect
     public static function delete($to)
     {
         if ($account = self::getStripeModel($to)) {
-            if ($stripeAccount = self::getStripeAccount($account->account_id)) {
+            if ($stripeAccount = self::getStripeAccount($account->vendor_id)) {
                 return $stripeAccount->delete() && $account->delete();
             }
         }
@@ -187,14 +135,23 @@ class Account extends StripeConnect
      * @param $to
      * @return object
      */
-    public static function accountLink($to): object
+    public static function accountLink($to, $return = null, $reauth = null): object
+    {
+        return self::accountLinkFromStripeModel(self::getStripeModel($to), $return, $reauth);
+    }
+
+    /**
+     * @param $to
+     * @return object
+     */
+    public static function accountLinkFromStripeModel($account, $return = null, $reauth = null): object
     {
         self::prepare();
-        $account = self::getStripeModel($to);
+        $id = is_string($account) ? $account : $account->vendor_id;
         return \Stripe\AccountLink::create([
-            'account' => $account->account_id,
-            'refresh_url' => url('reauth'),
-            'return_url' => url('return'),
+            'account' => $id,
+            'refresh_url' => $reauth ?? url('reauth'),
+            'return_url' => $return ?? url('return'),
             'type' => 'account_onboarding',
         ]);
     }
@@ -208,7 +165,7 @@ class Account extends StripeConnect
         self::prepare();
         $account = self::getStripeModel($to);
 
-        return StripeAccount::createLoginLink($account->account_id, [
+        return StripeAccount::createLoginLink($account->vendor_id, [
             'redirect_url' => $redirect,
         ]);
     }
@@ -224,9 +181,9 @@ class Account extends StripeConnect
 
         if (!is_string($to)) {
             if ($to instanceof User && $account = self::getStripeModel($to)) {
-                return \Stripe\Account::retrieve($account->account_id);
+                return \Stripe\Account::retrieve($account->vendor_id);
             } elseIf ($to instanceof Stripe) {
-                return \Stripe\Account::retrieve($to->account_id);
+                return \Stripe\Account::retrieve($to->vendor_id);
             }
         } else {
             return \Stripe\Account::retrieve($to);
@@ -244,5 +201,113 @@ class Account extends StripeConnect
         self::prepare();
 
         return \Stripe\Account::all();
+    }
+
+    /**
+     * @param $account
+     * @return \Stripe\Collection
+     * @throws \Stripe\Exception\ApiErrorException
+     */
+    public static function getAllStripeExternalAccounts($account)
+    {
+        self::prepare();
+        $id = is_string($account) ? $account : $account->vendor_id;
+
+        return StripeAccount::allExternalAccounts($id);
+    }
+
+    public static function stripeServicesAgreementAcceptance($to)
+    {
+        $response = self::update($to, [
+            'tos_acceptance' => [
+                'date' => time(),
+                'ip' => $_SERVER['REMOTE_ADDR'],
+            ],
+        ]);
+
+        if ($response && $account = self::get($to)) {
+            $account->has_agreement_acceptance = 1;
+            $account->save();
+        }
+
+        return $response;
+    }
+
+    public static function stripeDeauthorize($to)
+    {
+        self::prepare();
+
+        if ($account = self::get($to)
+            && $deauthorize = (new \Stripe\Account($account->vendor_id))->deauthorize(config('services.stripe.app_id'))
+        ) {
+            return $account->delete();
+        }
+
+        return false;
+    }
+
+    private static function setCapabilities($country)
+    {
+        $countryData = (new \Dominservice\DataLocaleParser\DataParser)->parseAllDataPerCountry('en', $country);
+        $capabilities = [
+            'card_payments' => ['requested' => true],
+        ];
+        if (in_array($countryData->so, ['AU', 'CA', 'NZ', 'UK', 'US'])) {
+            $capabilities['afterpay_clearpay_payments'] = ['requested' => true];
+        }
+        if (in_array($countryData->so, ['MY', 'SG'])) {
+            $capabilities['grabpay_payments'] = ['requested' => true];
+        }
+        if ($countryData->so === 'MX') {
+            $capabilities['oxxo_payments'] = ['requested' => true];
+        }
+        if ($countryData->so === 'CA') {
+            $capabilities['acss_debit_payments'] = ['requested' => true];
+        }
+        if ($countryData->so === 'AU') {
+            $capabilities['au_becs_debit_payments'] = ['requested' => true];
+        }
+        if ($countryData->so === 'MY') {
+            $capabilities['fpx_payments'] = ['requested' => true];
+        }
+        if ($countryData->so === 'JP') {
+            $capabilities['jcb_payments'] = ['requested' => true];
+        }
+
+        if ($countryData->continent === 'EU') {
+            $capabilities = array_merge($capabilities, [
+                'sepa_debit_payments' => ['requested' => true],
+                'transfers' => ['requested' => true],
+            ]);
+            if ($countryData->so === 'FR') {
+                $capabilities['cartes_bancaires_payments'] = ['requested' => true];
+            }
+            if ($countryData->so === 'UK') {
+                $capabilities['bacs_debit_payments'] = ['requested' => true];
+            }
+            if ($countryData->so === 'BE') {
+                $capabilities['bancontact_payments'] = ['requested' => true];
+            }
+            if ($countryData->so === 'AT') {
+                $capabilities['eps_payments'] = ['requested' => true];
+            }
+            if ($countryData->so === 'DE') {
+                $capabilities['giropay_payments'] = ['requested' => true];
+            }
+            if ($countryData->so === 'NL') {
+                $capabilities['ideal_payments'] = ['requested' => true];
+            }
+            if ($countryData->so === 'PL') {
+                $capabilities['p24_payments'] = ['requested' => true];
+            }
+            if (in_array($countryData->so, ['AT', 'BE', 'DE', 'IT', 'NL', 'ES'])) {
+                $capabilities['sofort_payments'] = ['requested' => true];
+            }
+        }
+        if (in_array($countryData->so, ['US', 'CA', 'JP'])) {
+            $capabilities['transfers'] = ['requested' => true];
+        }
+
+        return $capabilities;
     }
 }

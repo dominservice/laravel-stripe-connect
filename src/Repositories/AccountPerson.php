@@ -18,7 +18,7 @@ class AccountPerson extends StripeConnect
     public static function index($account)
     {
         self::prepare();
-        $id = is_string($account) ? $account : $account->account_id;
+        $id = is_string($account) ? $account : $account->vendor_id;
 
         return StripeAccount::allPersons($id);
     }
@@ -32,7 +32,7 @@ class AccountPerson extends StripeConnect
     public static function get($account, $personId)
     {
         self::prepare();
-        $id = is_string($account) ? $account : $account->account_id;
+        $id = is_string($account) ? $account : $account->vendor_id;
 
         return StripeAccount::retrievePerson($id, $personId);
     }
@@ -47,7 +47,8 @@ class AccountPerson extends StripeConnect
     public static function create($to, $account, $params = []): Stripe|string
     {
         self::prepare();
-        $id = is_string($account) ? $account : $account->account_id;
+        $id = is_string($account) ? $account : $account->vendor_id;
+        $dob = \Carbon\Carbon::parse($to->dob);
         $xtendParams = [
             'address' => [
                 'city' => $to->city ?? null,
@@ -61,20 +62,28 @@ class AccountPerson extends StripeConnect
             'first_name' => $to->first_name,
             'last_name' => $to->last_name,
             'phone' => $to->phone,
+            'dob' => [
+                'day' => $dob->day,
+                'month' => $dob->month,
+                'year' => $dob->year,
+            ],
             'relationship' => [
                 'director' => true,
                 'executive' => true,
                 'owner' => true,
                 'percent_ownership' => null,
                 'representative' => true,
-                'title' => null,
+                'title' => 'Owner',
             ]
         ];
-
-
         $params = array_replace_recursive($xtendParams, $params);
 
-        return StripeAccount::createPerson($id, $params);
+        if ($response = StripeAccount::createPerson($id, $params) && !is_string($account)) {
+            $account->has_person = 1;
+            $account->save();
+        }
+
+        return $response;
     }
 
     /**
@@ -88,7 +97,7 @@ class AccountPerson extends StripeConnect
     public static function update($to, $account, $personId, $params): Stripe|string
     {
         self::prepare();
-        $id = is_string($account) ? $account : $account->account_id;
+        $id = is_string($account) ? $account : $account->vendor_id;
 
         return StripeAccount::updatePerson($id, $personId, $params);
     }
@@ -102,7 +111,7 @@ class AccountPerson extends StripeConnect
     public static function delete($account, $personId)
     {
         self::prepare();
-        $id = is_string($account) ? $account : $account->account_id;
+        $id = is_string($account) ? $account : $account->vendor_id;
 
         return StripeAccount::deletePerson($id, $personId);
     }

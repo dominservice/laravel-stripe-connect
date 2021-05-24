@@ -43,12 +43,13 @@ class StripeConnect
      * @param $callback
      * @return Stripe
      */
-    protected static function createUser($user, $id_key, $callback): Stripe
+    protected static function createUser($user, $id_key, $typeAccount, $callback): Stripe
     {
         self::prepare();
         $user = self::getStripeModel($user);
         if (!$user->$id_key) {
             $user->$id_key = call_user_func($callback)->id;
+            $user->type_account = $typeAccount;
             $user->save();
         }
         return $user;

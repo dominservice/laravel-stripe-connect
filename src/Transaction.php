@@ -94,11 +94,11 @@ class Transaction
      * @param $currency
      * @return $this
      */
-    public function amount($value, $currency, $fee = null)
+    public function amount($value, $currency, $fee = null, $feeIsPercent = false)
     {
-        $this->value = $this->validAmount($amount);
         $this->currency = $currency;
-        $this->fee = $this->validAmount($fee, $currency);
+        $this->value = $this->validAmount($amount);
+        $this->fee = $this->validAmount($fee, null, $feeIsPercent ? $this->value : null);
         return $this;
     }
 
@@ -109,7 +109,7 @@ class Transaction
      * @param array $params
      * @return Charge
      */
-    public function create($params = [])
+    public function create($params = [], $type = '')
     {
         // Prepare vendor
         $vendor = Account::create($this->to, $this->to_params, $this->to_company);
@@ -133,7 +133,7 @@ class Transaction
 //        $transfer = \Stripe\Transfer::create([
 //            'amount' => $this->value,
 //            'currency' => $this->currency,
-//            'destination' => $vendor->account_id,
+//            'destination' => $vendor->vendor_id,
 //            'transfer_group' => 'ORDER10',
 //        ]);
 //
@@ -141,7 +141,7 @@ class Transaction
 ////        $transfer2 = \Stripe\Transfer::create([
 ////            'amount' => 2000,
 ////            'currency' => 'pln',
-////            'destination' => '{{OTHER_CONNECTED_STRIPE_ACCOUNT_ID}}',
+////            'destination' => '{{OTHER_CONNECTED_STRIPE_vendor_id}}',
 ////            'transfer_group' => '{ORDER10}',
 ////        ]);
 //
@@ -155,7 +155,7 @@ class Transaction
             'description' =>  'level.name',
             'amount' => $this->value,
             'currency' => $this->currency,
-            'transfer_data' => ['destination' => $vendor->account_id,],
+            'transfer_data' => ['destination' => $vendor->vendor_id],
             "application_fee_amount" => $this->fee ?? null,
 
         ], $params));
@@ -168,16 +168,21 @@ class Transaction
             'amount' => $this->value,
             'currency' => $this->currency,
             'transfer_data' => [
-                'destination' => $vendor->account_id,
+                'destination' => $vendor->vendor_id,
             ],
 
             "application_fee_amount" => $this->fee ?? null,
         ], $params));
     }
-    
-    private function validAmount($amount = null, $currency = null)
+
+    private function validAmount($amount = null, $currency = null, $valueForPercent = null)
     {
-        $amount ?? 0;
+        $amount = $amount ?? 0;
+        if ($isPercent && $valueForPercent) {
+            $amount = ($valueForPercent / 100) * $amount;
+        }
+
+        $amount = in_array(($currency ?? $this->currency), $this->zeroDecimalCurrencies) ? $amount : $amount*100;
         return in_array(($currency ?? $this->currency), $this->zeroDecimalCurrencies) ? $amount : $amount*100;
     }
 }

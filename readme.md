@@ -5,7 +5,7 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/dominservice/laravel-stripe-connect.svg?style=flat-square)](https://packagist.org/packages/dominservice/laravel-stripe-connect)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
 
-> Marketplaces and platforms use Stripe Connect to accept money and pay out to third parties. Connect provides a complete set of building blocks to support virtually any business model, including on-demand businesses, e‑commerce, crowdfunding, fintech, and travel and events. 
+> Marketplaces and platforms use Stripe Connect to accept money and pay out to third parties. Connect provides a complete set of building blocks to support virtually any business model, including on-demand businesses, e‑commerce, crowdfunding, fintech, and travel and events.
 
 Create a marketplace application with this helper for [Stripe Connect](https://stripe.com/connect).
 
@@ -76,9 +76,9 @@ developed against as guide. You may find the package works with older versions o
 ## Usage
 
 You can make a single payment from a user to another user
- or save a customer card for later use. Just remember to
- import the base class via:
- 
+or save a customer card for later use. Just remember to
+import the base class via:
+
 ```php
 use Dominservice\LaravelStripeConnect\StripeConnect;
 ```
@@ -149,7 +149,29 @@ StripeConnect::transaction($token)
     ->to($vendor, $params = [], $company = false)
     ->create(); 
 ```
+### Example #5 Session checkout
+`Fee` have 2 parameters __$amount__ and __$isPercent__.
+You make set multi products usint multiple `product()` method. This method has 4 parameters __$name__, __$amount__, __$quantity__ and __$currency__
+On default __$currency__ is taked from __$vendor__ stripe info and __$quantity__ = 1
+__$amount__ must be a `float` type
 
+
+```php 
+ $sessionCheckout = new Checkout;
+ $session = $sessionCheckout->vendor(auth()->user())
+   ->destinationCharges()
+   ->serReferenceTransaction($order->reference_number)
+   ->customer($user)
+   ->product(__('orders.transaction.name', [
+     'days' => $days,
+     'project' => $projectName,
+     'campaign' => $campaignName,
+   ]), $amount)
+   ->fee(10, true)
+   ->successUrl(route('orders.paymentSuccess', ['uuid'=>$order->uuid]))
+   ->cancelUrl(route('orders.checkout', ['uuid'=>$order->uuid]))
+   ->create();
+```
 #### User object must have:
 ```php
 $vendor = User:: (object) [

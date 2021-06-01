@@ -17,6 +17,12 @@ class Stripe extends Model
         'has_payment_card' => 'bool',
     ];
 
+    public function user()
+    {
+        $userModel = \Config::get('conversations.user_model', \App\User::class);
+        return $this->hasOne($userModel, 'id', 'user_id');
+    }
+
     public function vendorExternalAccounts()
     {
         return $this->hasMany(StripeVendorExternalAccount::class, 'vendor_stripe_id');

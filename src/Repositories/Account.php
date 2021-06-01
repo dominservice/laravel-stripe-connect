@@ -86,7 +86,7 @@ class Account extends StripeConnect
                 $params = array_replace_recursive($xtendParams, $params);
 
                 return StripeAccount::create($params);
-            });
+            }, $typeAccount);
         }
 
         return $account;
@@ -310,4 +310,15 @@ class Account extends StripeConnect
 
         return $capabilities;
     }
+
+    public static function balance($to)
+    {
+        self::prepare();
+
+        if ($account = self::get($to)) {
+            $balance = \Stripe\Balance::retrieve(['stripe_account' => $account->vendor_id]);
+            return $balance;
+        }
+    }
 }
+

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateStripeExternalAccountsTable extends Migration
+class CreateStripeVendorExternalAccountsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,14 +13,16 @@ class CreateStripeExternalAccountsTable extends Migration
      */
     public function up()
     {
-        Schema::create('stripe_vendor_external_accounts', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('vendor_stripe_id');
-            $table->foreign('vendor_stripe_id')->references('id')->on('stripes')->onDelete('cascade');
-            $table->string('external_id');
-            $table->unsignedTinyInteger('default_for_currency')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('stripe_vendor_external_accounts')) {
+            Schema::create('stripe_vendor_external_accounts', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('vendor_stripe_id');
+                $table->foreign('vendor_stripe_id')->references('id')->on('stripes')->onDelete('cascade');
+                $table->string('external_id');
+                $table->unsignedTinyInteger('default_for_currency')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

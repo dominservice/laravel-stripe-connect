@@ -104,6 +104,7 @@ class AccountBank extends \Dominservice\LaravelStripeConnect\StripeConnect
 
         return StripeAccount::deleteExternalAccount($id, $externalAccountId);
     }
+    
     public static function deleteStripeExternalAccount($account, $externalAccountId)
     {
         self::prepare();

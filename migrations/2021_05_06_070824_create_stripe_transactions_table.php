@@ -23,8 +23,10 @@ class CreateStripeTransactionsTable extends Migration
                 $table->double('amount', 50, 25)->nullable();
                 $table->double('vendor_amount', 50, 25)->nullable();
                 $table->double('fee_amount', 50, 25)->nullable();
-                $table->string('stripe_transaction_id');
+                $table->string('stripe_transaction_id')->nullable();
+                $table->string('stripe_checkout_id')->nullable();
                 $table->string('reference_number');
+                $table->string('currency', 3);
                 $table->unsignedTinyInteger('status')->default(0);
                 $table->timestamps();
                 $table->softDeletes();

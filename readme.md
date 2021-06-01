@@ -158,7 +158,7 @@ $vendor = User:: (object) [
     'phone' => '+48555555555',
     'email' => 'email@test.com',
     'country' => 'PL',
-]
+];
 ```
 #### Company object must have:
 ```php
@@ -173,7 +173,7 @@ $vendorCompany = Company:: (object) [
     'tax_no_prefix' => 'PL',
     'tax_no' => '0123456789',
     'country' => 'PL',
-]
+];
 ```
 
 ## Contributing

@@ -20,25 +20,6 @@ class Transaction
      */
     private $from, $to, $value, $currency, $to_params, $token, $fee, $from_params, $saved_customer;
 
-    private $zeroDecimalCurrencies = [
-        'BIF',
-        'CLP',
-        'DJF',
-        'GNF',
-        'JPY',
-        'KMF',
-        'KRW',
-        'MGA',
-        'PYG',
-        'RWF',
-        'UGX',
-        'VND',
-        'VUV',
-        'XAF',
-        'XOF',
-        'XPF',
-    ];
-
     /**
      * Transaction constructor.
      * @param null $token
@@ -97,8 +78,8 @@ class Transaction
     public function amount($value, $currency, $fee = null, $feeIsPercent = false)
     {
         $this->currency = $currency;
-        $this->value = $this->validAmount($amount);
-        $this->fee = $this->validAmount($fee, null, $feeIsPercent ? $this->value : null);
+        $this->value = StripeConnect::validAmount($amount);
+        $this->fee = StripeConnect::validAmount($fee ?? 0, $this->currency, $feeIsPercent ? $this->value : null);
         return $this;
     }
 
@@ -115,7 +96,7 @@ class Transaction
         $vendor = Account::create($this->to, $this->to_params, $this->to_company);
         // Prepare customer
         if ($this->saved_customer) {
-            $customer = Customer::createOrUpdate($this->token, $this->from, $this->from_params);
+            $customer = Customer::createOrUpdate($this->from, $this->token, $this->from_params);
             $params["customer"] = $customer->customer_id;
         } else {
             $params["source"] = $this->token;
@@ -173,16 +154,5 @@ class Transaction
 
             "application_fee_amount" => $this->fee ?? null,
         ], $params));
-    }
-
-    private function validAmount($amount = null, $currency = null, $valueForPercent = null)
-    {
-        $amount = $amount ?? 0;
-        if ($isPercent && $valueForPercent) {
-            $amount = ($valueForPercent / 100) * $amount;
-        }
-
-        $amount = in_array(($currency ?? $this->currency), $this->zeroDecimalCurrencies) ? $amount : $amount*100;
-        return in_array(($currency ?? $this->currency), $this->zeroDecimalCurrencies) ? $amount : $amount*100;
     }
 }

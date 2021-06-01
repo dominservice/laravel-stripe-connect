@@ -23,13 +23,13 @@ class Customer extends \Dominservice\LaravelStripeConnect\StripeConnect
      * @param array $params
      * @return Stripe
      */
-    public static function create($token, $from, $params = []): Stripe
+    public static function create($from, $token = null, $params = []): Stripe
     {
         $params = array_merge([
             "email" => $from->email,
             'source' => $token,
         ], $params);
-        return self::createUser($from, 'customer_id', function () use ($params) {
+        return self::createUser($from, 'customer_id', 'customer', function () use ($params) {
             return \Stripe\Customer::create($params);
         });
     }
@@ -40,26 +40,28 @@ class Customer extends \Dominservice\LaravelStripeConnect\StripeConnect
      * @param array $params
      * @return Stripe
      */
-    public function createOrUpdate($token, $from, $params = []): Stripe
+    public static function createOrUpdate($from, $token = null, $params = []): Stripe
     {
         self::prepare();
         $user = self::getStripeModel($from);
         if (!$user) {
-            return self::create($token, $from, $params);
+            return self::create($from, $token, $params);
         }
-        $customer = \Stripe\Customer::retrieve($token->customer_id);
-        $customer->source = $token;
-        $customer->save();
+        if ($token) {
+            $customer = \Stripe\Customer::retrieve($user->customer_id);
+            $customer->source = $token;
+            $customer->save();
+        }
         return $user;
     }
 
     public static function update($to, $params = [])
     {
-      
+
     }
 
     public static function delete()
     {
-        
+
     }
 }

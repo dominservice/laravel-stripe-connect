@@ -15,6 +15,7 @@ class CreateStripesTable extends Migration
     {
         if (!Schema::hasTable('stripes')) {
             Schema::create('stripes', function (Blueprint $table) {
+                $class = config('services.stripe.model');
                 $table->id();
                 $table->string('vendor_id')->nullable();
                 $table->string('customer_id')->nullable();
@@ -23,7 +24,7 @@ class CreateStripesTable extends Migration
                 $table->unsignedTinyInteger('has_bank_account')->nullable();
                 $table->unsignedTinyInteger('has_payment_card')->nullable();
                 $table->unsignedTinyInteger('has_agreement_acceptance')->nullable();
-                $table->foreign('user_id')->references('id')->on((new config('services.stripe.model'))->getTable());
+                $table->foreign('user_id')->references('id')->on((new $class)->getTable());
                 $table->string('type_account')->nullable(); // custom, standard, express
                 $table->timestamps();
             });
